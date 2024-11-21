@@ -1,8 +1,7 @@
-import Header from './containers/Header/Header.tsx';
-import ContactsPage from './containers/ContactsPage/ContactsPage.tsx';
-import { Route, Routes } from 'react-router-dom';
-import ContactsForm from './containers/ContactsForm/ContactsForm.tsx';
-
+import Header from "./containers/Header/Header.tsx";
+import ContactsPage from "./containers/ContactsPage/ContactsPage.tsx";
+import { Route, Routes } from "react-router-dom";
+import ContactsForm from "./containers/ContactsForm/ContactsForm.tsx";
 
 const App = () => (
   <>
@@ -10,9 +9,9 @@ const App = () => (
     <Routes>
       <Route path="/" element={<ContactsPage />} />
       <Route path="/new" element={<ContactsForm />} />
-      <Route path="/edit/:id" element={<ContactsForm />}/>
+      <Route path="/edit/:id" element={<ContactsForm />} />
     </Routes>
   </>
 );
 
-export default App
+export default App;

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { addContact, updateContact } from '../../store/slices/contactsSlice';
-import { Contact } from '../../types'; // Импортируйте интерфейс Contact
-import '../../App.css';
-import { useAppDispatch } from '../../app/hooks.ts';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { addContact, updateContact, fetchContacts } from "../../store/slices/contactsSlice";
+import { Contact } from "../../types";
+import "../../App.css";
+import { useAppDispatch, useAppSelector } from "../../app/hooks.ts";
 
 interface ContactFormProps {
   existingContact?: Contact;
@@ -12,23 +12,31 @@ interface ContactFormProps {
 const ContactsForm: React.FC<ContactFormProps> = ({ existingContact }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [formData, setFormData] = useState<Contact>({
-    id: existingContact?.id || '',
-    name: existingContact?.name || '',
-    phone: existingContact?.phone || '',
-    email: existingContact?.email || '',
-    photo: existingContact?.photo || '',
+    id: existingContact?.id || "",
+    name: existingContact?.name || "",
+    phone: existingContact?.phone || "",
+    email: existingContact?.email || "",
+    photo: existingContact?.photo || "",
   });
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const contacts = useAppSelector((state) => state.contacts.contacts);
+
   useEffect(() => {
-    if (existingContact) {
-      setFormData(existingContact);
+     if (id) {
+      const contactToEdit = contacts.find((contact) => contact.id === id);
+      if (contactToEdit) {
+        setFormData(contactToEdit);
+      } else {
+        dispatch(fetchContacts());
+      }
     }
-  }, [existingContact]);
+  }, [id, contacts, dispatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,21 +54,16 @@ const ContactsForm: React.FC<ContactFormProps> = ({ existingContact }) => {
       } else {
         await dispatch(addContact(formData));
       }
-      navigate('/');
+      navigate("/");
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unexpected error occurred.");
-      }
-    } finally {
+      setError("An unexpected error occurred.");
       setLoading(false);
     }
   };
 
   return (
     <div className="contact-form">
-      <h2>{existingContact ? 'Edit Contact' : 'Add New Contact'}</h2>
+      <h2>{existingContact ? "Edit Contact" : "Add New Contact"}</h2>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div>
@@ -113,15 +116,26 @@ const ContactsForm: React.FC<ContactFormProps> = ({ existingContact }) => {
               alt="Preview"
               width={100}
               height={100}
-              onError={(e) => { e.currentTarget.src = 'default-image-url'; }}
+              onError={(e) => {
+                e.currentTarget.src =
+                  "https://cs12.pikabu.ru/post_img/big/2022/10/24/2/1666571824193118478.jpg";
+              }}
             />
           </div>
         )}
         <div>
           <button className="submit-btn" type="submit" disabled={loading}>
-            {loading ? 'Saving...' : existingContact ? 'Update Contact' : 'Add Contact'}
+            {loading
+              ? "Saving..."
+              : existingContact
+                ? "Update Contact"
+                : "Add Contact"}
           </button>
-          <button className="cancel-btn" type="button" onClick={() => navigate('/')}>
+          <button
+            className="cancel-btn"
+            type="button"
+            onClick={() => navigate("/")}
+          >
             Cancel
           </button>
         </div>

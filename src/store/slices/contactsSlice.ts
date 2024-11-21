@@ -1,6 +1,6 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Contact } from '../../types';
-import axiosApi from '../../axiosApi';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { Contact } from "../../types";
+import axiosApi from "../../axiosApi";
 
 interface ContactsState {
   contacts: Contact[];
@@ -15,7 +15,7 @@ const initialState: ContactsState = {
 };
 
 export const fetchContacts = createAsyncThunk<Contact[]>(
-  'contacts/fetchContacts',
+  "contacts/fetchContacts",
   async () => {
     const response = await axiosApi.get("/contacts.json");
     return Object.keys(response.data).map((id) => ({
@@ -26,34 +26,44 @@ export const fetchContacts = createAsyncThunk<Contact[]>(
 );
 
 export const addContact = createAsyncThunk<Contact, Contact>(
-  'contacts/addContact',
+  "contacts/addContact",
   async (contact: Contact) => {
     const response = await axiosApi.post("/contacts.json", contact);
     return { ...contact, id: response.data.name };
-  }
+  },
 );
 
 export const updateContact = createAsyncThunk<Contact, Contact>(
-  'contacts/updateContact',
+  "contacts/updateContact",
   async (contact: Contact) => {
-    const response = await axiosApi.put(`/contacts/${contact.id}.json`, contact);
-    return { ...contact, id: response.data.name };
-  }
+    await axiosApi.put(`/contacts/${contact.id}.json`, contact);
+    return { ...contact, id: contact.id };
+  },
 );
 
+
 export const deleteContact = createAsyncThunk<string, string>(
-  'contacts/deleteContact',
+  "contacts/deleteContact",
   async (id: string) => {
     await axiosApi.delete(`/contacts/${id}.json`);
     return id;
-  }
+  },
 );
 
 const contactsSlice = createSlice({
-  name: 'contacts',
+  name: "contacts",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
+    const handleError = (
+      state: ContactsState,
+      action: any,
+      message: string,
+    ) => {
+      state.loading = false;
+      state.error = action.error.message || message;
+    };
+
     builder
       .addCase(fetchContacts.pending, (state) => {
         state.loading = true;
@@ -64,8 +74,7 @@ const contactsSlice = createSlice({
         state.contacts = action.payload;
       })
       .addCase(fetchContacts.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch contacts';
+        handleError(state, action, "Failed to fetch contacts");
       })
       .addCase(addContact.pending, (state) => {
         state.loading = true;
@@ -76,12 +85,11 @@ const contactsSlice = createSlice({
         state.contacts.push(action.payload);
       })
       .addCase(addContact.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to add contact';
+        handleError(state, action, "Failed to add contact");
       })
       .addCase(updateContact.fulfilled, (state, action) => {
         const index = state.contacts.findIndex(
-          (contact) => contact.id === action.payload.id
+          (contact) => contact.id === action.payload.id,
         );
         if (index !== -1) {
           state.contacts[index] = action.payload;
@@ -89,11 +97,11 @@ const contactsSlice = createSlice({
       })
       .addCase(deleteContact.fulfilled, (state, action) => {
         state.contacts = state.contacts.filter(
-          (contact) => contact.id !== action.payload
+          (contact) => contact.id !== action.payload,
         );
       })
       .addCase(deleteContact.rejected, (state, action) => {
-        state.error = action.error.message || 'Failed to delete contact';
+        handleError(state, action, "Failed to delete contact");
       });
   },
 });
