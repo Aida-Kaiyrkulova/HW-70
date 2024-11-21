@@ -7,8 +7,6 @@ import ContactModal from '../ContactModal/ContactModal.tsx';
 const ContactsPage = () => {
   const dispatch = useAppDispatch();
   const { contacts, loading, error } = useAppSelector((state) => state.contacts);
-
-
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const openModal = (contact: Contact) => {
@@ -34,17 +32,24 @@ const ContactsPage = () => {
 
   if (loading) return <div>Loading...</div>;
 
-  if (error) return <div>Error: {error}</div>;
+  if (error) {
+    return (
+      <div>
+        <div>Error: {error}</div>
+        <button onClick={() => dispatch(fetchContacts())}>Retry</button>
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className={selectedContact ? 'modal-open' : ''}>
       <h1>Contacts</h1>
       <ul>
         {contacts.map((contact) => (
           <li
             key={contact.id}
             onClick={() => openModal(contact)}
-            style={{ cursor: "pointer", marginBottom: "10px", padding: "10px", border: "1px solid #ccc" }}
+            className={`contact-item ${selectedContact?.id === contact.id ? 'selected' : ''}`}
           >
             <div>
               <img
@@ -52,7 +57,7 @@ const ContactsPage = () => {
                 alt={contact.name}
                 width={100}
                 height={100}
-                style={{ borderRadius: "50%" }}
+                className="contact-photo"
               />
               <p>{contact.name}</p>
               <p>{contact.phone}</p>

@@ -10,6 +10,7 @@ const App = () => (
     <Routes>
       <Route path="/" element={<ContactsPage />} />
       <Route path="/new" element={<ContactsForm />} />
+      <Route path="/edit/:id" element={<ContactsForm />}/>
     </Routes>
   </>
 );
